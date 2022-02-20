@@ -1,7 +1,5 @@
 # Real-CUGAN server
-> [叔叔的模型](https://github.com/bilibili/ailab/tree/main/Real-CUGAN)的 http API
-
-默认使用`CPU`进行计算，如果服务器有`GPU`请自行修改代码。
+> [叔叔的模型](https://github.com/bilibili/ailab/tree/main/Real-CUGAN)的 azure 云函数版本
 
 ## 效果
 
@@ -20,19 +18,12 @@
 	</tr>
 </table>
 
-## 命令行参数
-```bash
-python3 server.py <host> <port>
-```
-
-- 会缓存图片到`./tmp`，下次请求相同图片则不进行计算直接返回。
-- 服务器内存`8GB`时，最大约可处理`1080p`图片。
-
 ## API
+> 注意：由于云函数内存较小，请将图片分辨率控制在`0.25MP`，即`500*500`之内
 #### 必要参数
-> GET http://host:port/scale?url=图片链接
+> GET https://bilibiliai.azurewebsites.net/api/scale?url=图片链接
 
-> POST http://host:port/scale BODY: 图片
+> POST https://bilibiliai.azurewebsites.net/api/scale BODY: 图片
 #### 可选参数
 > model=[conservative, no-denoise, denoise1x, denoise2x, denoise3x]
 

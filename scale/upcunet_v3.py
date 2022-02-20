@@ -1,10 +1,8 @@
 import torch
 from torch import nn as nn
 from torch.nn import functional as F
-import os,sys
 import numpy as np
-root_path=os.path.abspath('.')
-sys.path.append(root_path)
+
 class SEBlock(nn.Module):
     def __init__(self, in_channels, reduction=8, bias=False):
         super(SEBlock, self).__init__()
@@ -695,41 +693,3 @@ class RealWaifuUpScaler(object):
             result = self.tensor2np(self.model(tensor,tile_mode))
             del tensor
         return result
-
-if __name__ == "__main__":
-    ###########inference_img
-    import cv2, sys
-    from time import time
-    for weight_path,scale in [("weights_v3/up2x-latest-denoise3x.pth",2),("weights_v3/up3x-latest-denoise3x.pth",3),("weights_v3/up4x-latest-denoise3x.pth",4)]:
-        for tile_mode in [0,1,2,3,4]:
-            upscaler2x = RealWaifuUpScaler(scale, weight_path, half=False, device="cpu:0")
-            input_dir="%s/input_dir1"%root_path
-            output_dir="%s/opt-dir-all-test"%root_path
-            os.makedirs(output_dir,exist_ok=True)
-            for name in os.listdir(input_dir):
-                print(name)
-                tmp = name.split(".")
-                inp_path = os.path.join(input_dir, name)
-                suffix = tmp[-1]
-                prefix = ".".join(tmp[:-1])
-                tmp_path = os.path.join(root_path, "tmp", "%s.%s" % (int(time() * 1000000), suffix))
-                print(inp_path,tmp_path)
-                #支持中文路径
-                # os.link(inp_path, tmp_path)#win用硬链接
-                os.symlink(inp_path, tmp_path)#linux用软链接
-                frame = cv2.imread(tmp_path)[:, :, [2, 1, 0]]
-                t0 = time()
-                result = upscaler2x(frame, tile_mode=tile_mode)[:, :, ::-1]
-                t1 = time()
-                print(prefix, "done", t1 - t0)
-                tmp_opt_path = os.path.join(root_path, "tmp", "%s.%s" % (int(time() * 1000000), suffix))
-                cv2.imwrite(tmp_opt_path, result)
-                n=0
-                while(1):
-                    if(n==0):suffix="_%sx_tile%s.png" % (scale,tile_mode)
-                    else:suffix="_%sx_tile%s_%s.png" % (scale,tile_mode,n)#
-                    if(os.path.exists(os.path.join(output_dir, prefix + suffix))==False):break
-                    else:n+=1
-                final_opt_path=os.path.join(output_dir, prefix + suffix)
-                os.rename(tmp_opt_path,final_opt_path )
-                os.remove(tmp_path)
